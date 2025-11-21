@@ -131,7 +131,4 @@ INFO: Decoded secret file extension (.txt)
 INFO: Decoded secret file size (1024 bytes)
 INFO: Secret file decoded and saved successfully!
 
-🧑‍💻 Author
-
-Your Name
-📧 varshiniyadav87@gmail.com
+🧑‍💻 Author - Varshini Yadav [varshiniyadav87@gmail.com]
