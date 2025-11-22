@@ -122,7 +122,7 @@ Status skip_bmp_header(DecodeInfo *decInfo)
     }
 
     // Move the file pointer 54 bytes from the start (SKIP BMP HEADER)
-    if (fseek(decInfo->fptr_stego_image, 54, SEEK_SET) != 0)
+    if (fseek(decInfo->fptr_stego_image, 54L, SEEK_SET) != 0)
     {
         printf("\033[1;36m❌ ERROR: Failed to seek past BMP header\033[0m\n");
         return e_failure;
@@ -299,7 +299,6 @@ Status decode_data_from_image(char *output, int size, FILE *fptr_src_image)
 {
     unsigned char img_buffer[8];
     char ch;
-
     for (int i = 0; i < size; i++)
     {
         // Read 8 bytes from the image
@@ -308,22 +307,18 @@ Status decode_data_from_image(char *output, int size, FILE *fptr_src_image)
             printf("\033[1;36m❌ ERROR: Not enough image data to decode byte %d\033[0m\n", i);
             return e_failure;
         }
-
         // Decode one byte
         if (decode_byte_from_lsb(&ch, img_buffer) != e_success)
         {
             printf("\033[1;36m❌ ERROR: Failed to decode byte %d\033[0m\n", i);
             return e_failure;
         }
-
         // Store decoded byte
         output[i] = ch;
     }
-
     output[size] = '\0';  // Null terminate just in case (for strings like file extensions)
     return e_success;
 }
-
 /* Decode byte from LSBs
  * Input: Output byte pointer and image buffer
  * Output: Returns e_success or e_failure
@@ -341,7 +336,6 @@ Status decode_byte_from_lsb(char *data, unsigned char *image_buffer)
 
     return e_success;
 }
-
 /* Decode size from LSBs
  * Input: Pointer to store decoded integer, and buffer
  * Output: Returns e_success or e_failure
