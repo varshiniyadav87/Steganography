@@ -46,6 +46,7 @@ Standard C libraries only (stdio.h, string.h, stdlib.h).
 Encoding: Successful validation, encoding steps, and file generation.
 Decoding: Header skipping, secret extraction, and file restoration.
 
-## Author: Varshini Yadav – varshiniyadav87@gmail.com
+Author: Varshini Yadav – varshiniyadav87@gmail.com
 
-## #CProgramming #Steganography #EmbeddedSystems #BMP #OpenSource #PortfolioProject
+#CProgramming #Steganography #EmbeddedSystems #BMP #OpenSource #PortfolioProject
+
