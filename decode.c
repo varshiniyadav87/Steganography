@@ -18,7 +18,7 @@ Status read_and_validate_decode_args(int argc,char *argv[] , DecodeInfo *decInfo
     // Validate argument count
     if (argc != 3 && argc != 4)  
     {
-        printf("ERROR: Usage: ./decode <stego.bmp> [output_file]\n");
+        printf("\033[1;36m❌ ERROR: Usage: ./decode <stego.bmp> [output_file]\033[0m\n");
         return e_failure;
     }
 
@@ -26,7 +26,7 @@ Status read_and_validate_decode_args(int argc,char *argv[] , DecodeInfo *decInfo
     int len = strlen(argv[2]);
     if (len < 3 || strcmp(argv[2] + len - 4,".bmp") != 0) 
     {
-        printf("ERROR: Stego image must be .bmp\n");
+        printf("\033[1;36m❌ ERROR: Stego image must be .bmp\033[0m\n");
         return e_failure;
     }
 
@@ -45,6 +45,7 @@ Status read_and_validate_decode_args(int argc,char *argv[] , DecodeInfo *decInfo
         strcpy(decInfo->secret_fname, "output_stego");
     }
 
+    printf("\033[1;36m🟢 Decoding inputs validated successfully.\033[0m\n");
     return e_success ;
 }
 
@@ -57,46 +58,46 @@ Status read_and_validate_decode_args(int argc,char *argv[] , DecodeInfo *decInfo
  */
 Status do_decoding(DecodeInfo *decInfo)
 {
-printf("INFO: Opening stego image: %s\n", decInfo->stego_image_fname);
+    printf("\033[1;36m📂 Opening stego image: %s\033[0m\n", decInfo->stego_image_fname);
 
     if (skip_bmp_header(decInfo) != e_success)
     {
-        printf("ERROR: Failed to skip BMP header\n");
+        printf("\033[1;36m❌ ERROR: Failed to skip BMP header\033[0m\n");
         return e_failure;
     }
 
     if (decode_magic_string(MAGIC_STRING, decInfo) != e_success)
     {
-        printf("ERROR: Magic string mismatch\n");
+        printf("\033[1;36m❌ ERROR: Magic string mismatch\033[0m\n");
         return e_failure;
     }
-    printf("INFO: Magic string verified\n");
+    printf("\033[1;36m🔑 Magic string verified\033[0m\n");
 
     if (decode_secret_file_extn_size(decInfo) != e_success)
     {
-        printf("ERROR: Failed to decode extension file size\n");
+        printf("\033[1;36m❌ ERROR: Failed to decode extension file size\033[0m\n");
         return e_failure;
     }
 
     if (decode_secret_file_extn(decInfo) != e_success)
     {
-        printf("ERROR: Failed to decode extension\n");
+        printf("\033[1;36m❌ ERROR: Failed to decode extension\033[0m\n");
         return e_failure;
     }
 
     if (decode_secret_file_size(decInfo) != e_success)
     {
-        printf("ERROR: Failed to decode secret file size\n");
+        printf("\033[1;36m❌ ERROR: Failed to decode secret file size\033[0m\n");
         return e_failure;
     }
 
     if (decode_secret_file_data(decInfo) != e_success)
     {
-        printf("ERROR: Failed to decode secret data\n");
+        printf("\033[1;36m❌ ERROR: Failed to decode secret data\033[0m\n");
         return e_failure;
     }
 
-    printf("SUCCESS: Decoding completed! Saved as '%s'\n", decInfo->secret_fname);
+    printf("\033[1;36m🏆 SUCCESS: Decoding completed! Saved as '%s'\033[0m\n", decInfo->secret_fname);
     return e_success;
 }
 
@@ -105,7 +106,7 @@ printf("INFO: Opening stego image: %s\n", decInfo->stego_image_fname);
  * Output: Returns e_success or e_failure
  * Description:
  * Opens the stego image and moves the file pointer past
- * the 54-byte BMP header to the pixel data region.
+ * the 64-byte BMP header to the pixel data region.
  */
 Status skip_bmp_header(DecodeInfo *decInfo)
 {
@@ -116,18 +117,18 @@ Status skip_bmp_header(DecodeInfo *decInfo)
     if (!decInfo->fptr_stego_image)
     {
         // Print error message 
-        perror("ERROR: fopen stego image");
+        perror("\033[1;36m❌ ERROR: fopen stego image\033[0m");
         return e_failure;
     }
 
     // Move the file pointer 54 bytes from the start (SKIP BMP HEADER)
-    if (fseek(decInfo->fptr_stego_image, 54L, SEEK_SET) != 0)
+    if (fseek(decInfo->fptr_stego_image, 54, SEEK_SET) != 0)
     {
-        printf("ERROR: Failed to seek past BMP header\n");
+        printf("\033[1;36m❌ ERROR: Failed to seek past BMP header\033[0m\n");
         return e_failure;
     }
 
-    printf("INFO: Skipped 54-byte BMP header\n");
+    printf("\033[1;36m📄 Skipped 64-byte BMP header\033[0m\n");
     return e_success;
 }
 
@@ -153,7 +154,7 @@ Status decode_magic_string(char *magic_string,DecodeInfo *decInfo)
     // Compare the decoded magic string with the original magic string
     if (strcmp(buffer, magic_string) != 0)
     {
-        printf("ERROR: Expected magic '%s', got '%s'\n", magic_string, buffer);
+        printf("\033[1;36m❌ ERROR: Expected magic '%s', got '%s'\033[0m\n", magic_string, buffer);
         return e_failure;
     }
     return e_success;
@@ -179,9 +180,9 @@ Status decode_secret_file_extn_size(DecodeInfo *decInfo)
     if (decode_size_from_lsb(&decInfo->size_secret_file_extn, buffer) != e_success)
         return e_failure;
 
-    printf("DEBUG: Decoded extension size = %ld\n", decInfo->size_secret_file_extn);
+    printf("\033[1;36m📝 Decoded extension size = %ld\033[0m\n", decInfo->size_secret_file_extn);
     if (decInfo->size_secret_file_extn <= 0 || decInfo->size_secret_file_extn >= MAX_FILE_SUFFIX_) {
-        printf("ERROR: invalid decoded extension size %ld\n", decInfo->size_secret_file_extn);
+        printf("\033[1;36m❌ ERROR: invalid decoded extension size %ld\033[0m\n", decInfo->size_secret_file_extn);
         return e_failure;
     }
 
@@ -203,7 +204,7 @@ Status decode_secret_file_extn(DecodeInfo *decInfo)
     /* Decode the secret file extension from image */
     if (decode_data_from_image(decInfo->extn_secret_file, (int)decInfo->size_secret_file_extn, decInfo->fptr_stego_image) != e_success) 
     {
-        printf("Error: failed to decode secret file extension\n");
+        printf("\033[1;36m❌ ERROR: Failed to decode secret file extension\033[0m\n");
         return e_failure;
     }
 
@@ -212,12 +213,12 @@ Status decode_secret_file_extn(DecodeInfo *decInfo)
 
     /* Append extension to output file name safely */
     strcat(decInfo->secret_fname, decInfo->extn_secret_file);
-    printf("INFO: Output file = '%s'\n", decInfo->secret_fname);
+    printf("\033[1;36m📁 Output file = '%s'\033[0m\n", decInfo->secret_fname);
 
     decInfo->fptr_secret = fopen(decInfo->secret_fname, "wb");
     if (!decInfo->fptr_secret)
     {
-        perror("ERROR: fopen output file");
+        perror("\033[1;36m❌ ERROR: fopen output file\033[0m");
         return e_failure;
     }
 
@@ -244,7 +245,7 @@ Status decode_secret_file_size(DecodeInfo *decInfo)
     if(decode_size_from_lsb(&decInfo->size_secret_file,buffer) != e_success)
         return e_failure;
 
-    printf("INFO: Secret file size = %ld bytes\n", decInfo->size_secret_file);
+    printf("\033[1;36m📦 Secret file size = %ld bytes\033[0m\n", decInfo->size_secret_file);
     if (decInfo->size_secret_file < 0)
         return e_failure;
 
@@ -269,9 +270,6 @@ Status decode_secret_file_data(DecodeInfo *decInfo)
     /* To hold one decoded character */
     char ch;
 
-    if (decInfo->size_secret_file <= 0) 
-        return e_failure;
-
     for (long i = 0; i < decInfo->size_secret_file; i++)
     {
         // Read 8 bytes from stego image
@@ -288,8 +286,6 @@ Status decode_secret_file_data(DecodeInfo *decInfo)
     }
 
     return e_success;
-
-    
 }
 
 /* Decode data from image
@@ -309,14 +305,14 @@ Status decode_data_from_image(char *output, int size, FILE *fptr_src_image)
         // Read 8 bytes from the image
         if (fread(img_buffer, 1, 8, fptr_src_image) != 8)
         {
-            printf("Error: Not enough image data to decode byte %d\n", i);
+            printf("\033[1;36m❌ ERROR: Not enough image data to decode byte %d\033[0m\n", i);
             return e_failure;
         }
 
         // Decode one byte
         if (decode_byte_from_lsb(&ch, img_buffer) != e_success)
         {
-            printf("Error: Failed to decode byte %d\n", i);
+            printf("\033[1;36m❌ ERROR: Failed to decode byte %d\033[0m\n", i);
             return e_failure;
         }
 

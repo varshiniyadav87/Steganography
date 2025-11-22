@@ -26,9 +26,7 @@ int main(int argc , char *argv[])
     {
         if (read_and_validate_encode_args(argc,argv,&encInfo) == e_success)
         {
-            printf("Validation successful\n");
             do_encoding(&encInfo);  // Perform encoding
-            printf("Encoding Complete!!\n");
 
             // Close all opened files after encoding
             fclose(encInfo.fptr_src_image);
@@ -45,9 +43,7 @@ int main(int argc , char *argv[])
     {
         if (read_and_validate_decode_args(argc,argv,&decInfo) == e_success)
         {
-            printf("Validation successful\n");
             do_decoding(&decInfo);  // Perform decoding
-            printf("Decoding Complete!!\n");
 
             // Close all opened files after encoding
             fclose(decInfo.fptr_stego_image);

@@ -20,12 +20,10 @@ uint get_image_size_for_bmp(FILE *fptr_image)
 
     // Read the width (an int)
     fread(&width, sizeof(int), 1, fptr_image);
-    printf("width = %u\n", width);
-
-    // Read the height (an int)
     fread(&height, sizeof(int), 1, fptr_image);
-    printf("height = %u\n", height);
 
+    printf("\033[1;36m🖥️  Image dimensions: %u x %u pixels.\033[0m\n", width, height);
+    
     // Return image capacity
     return width * height * 3;
 }
@@ -66,9 +64,9 @@ Status open_files(EncodeInfo *encInfo)
     // Do Error handling
     if (encInfo->fptr_src_image == NULL)
     {
-    	perror("fopen");
-    	fprintf(stderr, "ERROR: Unable to open file %s\n", encInfo->src_image_fname);
-    	return e_failure;
+        perror("fopen");
+        fprintf(stderr, "ERROR: Unable to open file %s\n", encInfo->src_image_fname);
+        return e_failure;
     }
 
     // Secret file
@@ -76,9 +74,9 @@ Status open_files(EncodeInfo *encInfo)
     // Do Error handling
     if (encInfo->fptr_secret == NULL)
     {
-    	perror("fopen");
-    	fprintf(stderr, "ERROR: Unable to open file %s\n", encInfo->secret_fname);
-    	return e_failure;
+        perror("fopen");
+        fprintf(stderr, "ERROR: Unable to open file %s\n", encInfo->secret_fname);
+        return e_failure;
     }
 
     // Stego Image file
@@ -86,11 +84,13 @@ Status open_files(EncodeInfo *encInfo)
     // Do Error handling
     if (encInfo->fptr_stego_image == NULL)
     {
-    	perror("fopen");
-    	fprintf(stderr, "ERROR: Unable to open file %s\n", encInfo->stego_image_fname);
+        perror("fopen");
+        fprintf(stderr, "ERROR: Unable to open file %s\n", encInfo->stego_image_fname);
 
-    	return e_failure;
+        return e_failure;
     }
+
+    printf("\033[1;36m📁 Files opened — preparing environment for data embedding.\033[0m\n");
 
     // No failure return e_success
     return e_success;
@@ -105,8 +105,8 @@ Status open_files(EncodeInfo *encInfo)
  */
 Status read_and_validate_encode_args(int argc,char *argv[] , EncodeInfo *encInfo)
 {
-    // Check argument count (should be 4 or 5)
-    if (argc != 4 && argc != 5)  
+    // Check argument count (should be 4 or 6)
+    if (argc != 4 && argc != 6)  
         return e_failure;
 
     // Validate source image file (must end with .bmp)
@@ -126,9 +126,8 @@ Status read_and_validate_encode_args(int argc,char *argv[] , EncodeInfo *encInfo
     else 
         return e_failure;
 
-
     // Set stego image file name (default or user-provided)
-    if (argc == 5)
+    if (argc == 6)
     {
         len = strlen(argv[4]);
         if (len < 4 || strcmp(argv[4] + len - 4, ".bmp") != 0)
@@ -140,6 +139,7 @@ Status read_and_validate_encode_args(int argc,char *argv[] , EncodeInfo *encInfo
         encInfo->stego_image_fname = "stego.bmp";
     }
 
+    printf("\033[1;36m✅ Validation Passed: All inputs are verified!\033[0m\n");
     return e_success ;
 }
 
@@ -155,11 +155,12 @@ Status check_capacity(EncodeInfo *encInfo)
     encInfo->image_capacity = get_image_size_for_bmp(encInfo->fptr_src_image);
     encInfo->size_secret_file = get_file_size(encInfo->fptr_secret);
 
-    if (encInfo->image_capacity < ((strlen(MAGIC_STRING) + 4 + strlen(encInfo->extn_secret_file) + 4 + encInfo->size_secret_file) * 8) + 54)
+    if (encInfo->image_capacity < ((strlen(MAGIC_STRING) + 4 + strlen(encInfo->extn_secret_file) + 4 + encInfo->size_secret_file) * 8) + 64)
     {
-        printf("ERROR: Not enough space have \n");
+        printf("\033[1;36m❌ ERROR: Not enough space available!\033[0m\n");
         return e_failure;
     }
+    printf("\033[1;36m📊 Capacity Check: Image has sufficient room for the secret payload.\033[0m\n");
     return e_success;
 }
 
@@ -175,56 +176,50 @@ Status do_encoding(EncodeInfo *encInfo)
 {
     // check if all required files are opened successfully 
     if (open_files(encInfo) != e_success)
-    {
-        printf("Error: Unable to open files\n");
         return e_failure;
-    }
-    printf("Files opened successfully\n");
 
     // Check if image has enough capacity to hold secret data
     if (check_capacity(encInfo) != e_success)
-    {
-        printf("Error: Image does not have enough capacity\n");
         return e_failure;
-    }
-    printf("Capacity check passed\n");
 
     // Copy BMP header
-    printf("Copying BMP header\n");
+    printf("\033[1;36m📄 Header copied successfully — canvas ready for steganography.\033[0m\n");    
     if (copy_bmp_header(encInfo->fptr_src_image, encInfo->fptr_stego_image) != e_success)
         return e_failure;
 
     // Encode magic string
-    printf("Encoding magic string\n");
+    printf("\033[1;36m✨ Embedding magic signature to mark presence of hidden data.\033[0m\n");   
     if (encode_magic_string(MAGIC_STRING, encInfo) != e_success)
         return e_failure;
 
     // Encode secret file extension size
-    printf("Encoding secret file extension size\n");
+    printf("\033[1;36m🗂️  Storing secret file extension and size metadata.\033[0m\n");    
     if (encode_secret_file_extn_size(strlen(encInfo->extn_secret_file), encInfo) != e_success)
         return e_failure;
 
     // Encode secret file extension
-    printf("Encoding secret file extension\n");
+    printf("\033[1;36m📑 Writing secret file extension (.txt / .pdf / custom).\033[0m\n");
     if (encode_secret_file_extn(encInfo->extn_secret_file, encInfo) != e_success)
         return e_failure;
 
     // Encode secret file size
-    printf("Encoding secret file size\n");
+    printf("\033[1;36m📦 Capturing and recording exact secret file size.\033[0m\n");
     if (encode_secret_file_size(encInfo->size_secret_file, encInfo) != e_success)
         return e_failure;
 
     // Encode secret file data
-    printf("Encoding secret file data\n");
+    printf("\033[1;36m🔒 Encoding secret data into pixel bytes, bit by bit.\033[0m\n");
     if (encode_secret_file_data(encInfo) != e_success)
         return e_failure;
 
     // Copy remaining image data
-    printf("Copying remaining image data\n");
+    printf("\033[1;36m📤 Appending untouched image bytes to maintain visual integrity.\033[0m\n");
     if (copy_remaining_img_data(encInfo->fptr_src_image, encInfo->fptr_stego_image) != e_success)
         return e_failure;
 
-    printf("Encoding completed successfully!\n");
+    printf("\033[1;36m🏆 Steganography successful — hidden data embedded securely.\033[0m\n");
+
+    printf("\033[1;36m🚀 Encoding process completed — your mission is accomplished!\033[0m\n");
     return e_success;
 }
 
@@ -290,13 +285,13 @@ Status encode_byte_to_lsb(int data, char *image_buffer)
  * Input: Source and destination image file pointers
  * Output: Returns e_success after copying the header
  * Description:
- * Reads the 54-byte BMP header from the source image and writes it
+ * Reads the 64-byte BMP header from the source image and writes it
  * unchanged to the destination (stego) image.
  */
 Status copy_bmp_header(FILE *fptr_src_image, FILE *fptr_dest_image)
 {
     // Buffer to store BMP header
-    char buffer[54];
+    char buffer[64];
 
     // Move to start of source image
     if (fseek(fptr_src_image, 0, SEEK_SET) != 0)
@@ -460,4 +455,3 @@ Status copy_remaining_img_data(FILE *fptr_src, FILE *fptr_dest)
     }
     return e_success;
 }
-
